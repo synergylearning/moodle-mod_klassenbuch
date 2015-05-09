@@ -29,8 +29,10 @@ if ($ADMIN->fulltree) {
 
     // General settings.
 
-    $settings->add(new admin_setting_configcheckbox('klassenbuch/requiremodintro',
-                    get_string('requiremodintro', 'admin'), get_string('configrequiremodintro', 'admin'), 1));
+    if ($CFG->branch < 29) {
+        $settings->add(new admin_setting_configcheckbox('klassenbuch/requiremodintro',
+                       get_string('requiremodintro', 'admin'), get_string('configrequiremodintro', 'admin'), 1));
+    }
 
     $options = klassenbuch_get_numbering_types();
 
