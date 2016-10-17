@@ -34,13 +34,10 @@ Feature: Users can subscribe to a klassenbuch and receive updates when sent by a
 
   Scenario: If everyone is subscribed, the chapter is sent to everyone
     When I follow "Everyone will be subscribed to this book"
-    And I follow "Continue"
     And I should see "This book forces everyone to subscribe"
     And I follow "Allow everyone to choose"
-    And I follow "Continue"
     And I should see "Everyone can choose to subscribe to this book"
     And I follow "Everyone will be subscribed to this book"
-    And I follow "Continue"
     And I click on "Send" "link" in the "Chapter 1" "list_item"
     Then I should see "3 participants sent chapter 'Chapter 1'"
 
@@ -55,11 +52,8 @@ Feature: Users can subscribe to a klassenbuch and receive updates when sent by a
     And I follow "Course 1"
     And I follow "Klassenbuch 1"
     And I follow "I want to subscribe to this book"
-    And I follow "Continue"
     And I follow "I want to unsubscribe from this book"
-    And I follow "Continue"
     And I follow "I want to subscribe to this book"
-    And I follow "Continue"
     And I log out
 
     When I log in as "teacher1"
