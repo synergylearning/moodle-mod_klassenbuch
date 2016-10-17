@@ -33,7 +33,12 @@ class restore_klassenbuch_activity_structure_step extends restore_activity_struc
         $userinfo = $this->get_setting_value('userinfo');
 
         $paths[] = new restore_path_element('klassenbuch', '/activity/klassenbuch');
-        $paths[] = new restore_path_element('klassenbuch_chapter', '/activity/klassenbuch/chapters/chapter');
+        $chapter = new restore_path_element('klassenbuch_chapter', '/activity/klassenbuch/chapters/chapter');
+        $paths[] = $chapter;
+        
+        // Apply for 'klassenbuchtool' subplugins optional paths at chapter level
+        $this->add_subplugin_structure('klassenbuchtool', $chapter);
+        
         $paths[] = new restore_path_element('klassenbuch_chapterfield',
                                             '/activity/klassenbuch/chapters/chapter/chapterfields/chapterfield');
         if ($userinfo) {

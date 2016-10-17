@@ -22,6 +22,8 @@
  * @copyright  2012 Synergy Learning / Manolescu Dorel based on book module and TCPDF library
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+use klassenbuchtool_print\pdf_helper;
+
 require(dirname(__FILE__).'/../../../../config.php');
 require_once(dirname(__FILE__).'/locallib.php');
 global $CFG, $DB, $USER, $PAGE, $SITE;
@@ -69,81 +71,6 @@ $strklassenbuchs = get_string('modulenameplural', 'mod_klassenbuch');
 $strklassenbuch = get_string('modulename', 'mod_klassenbuch');
 $strtop = get_string('top', 'mod_klassenbuch');
 
-class KlassenbuchPDF extends pdf {
-
-    // Page header.
-    public function Header() {
-        $style = array('width' => 0.5, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(0, 64, 128));
-        $this->Line(10, 7, 200, 7, $style);
-        // Set font.
-        $this->SetFont('helvetica', 'B', 20);
-    }
-
-    // Page footer.
-    public function Footer() {
-        $style = array('width' => 0.5, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(0, 64, 128));
-        // Position at 15 mm from bottom.
-        $this->SetY(-15);
-        $this->Line(10, 280, 200, 280, $style);
-        // Set font.
-        $this->SetFont('helvetica', 'I', 8);
-        // Page number.
-        $this->Cell(0, 10, 'Page '.$this->getAliasNumPage().'/'.$this->getAliasNbPages(), 0, false, 'C', 0, '', 0, false, 'T', 'M');
-    }
-
-}
-
-function klassenbuch_replaceSpecial($str) {
-    // Rescue some special fonts first.
-    $str = htmlentities($str, null, 'UTF-8', false);
-    $str = str_replace(array('&amp;', '&quot;', '&#039;', '&lt;', '&gt;'), array('&', '"', "'", '<', '>'), $str);
-    $chunked = str_split($str, 1);
-    $str = "";
-    foreach ($chunked as $chunk) {
-        $num = ord($chunk);
-        // Remove non-ascii & non html characters.
-        if ($num >= 32 && $num <= 127) {
-            $str .= $chunk;
-        }
-    }
-    return $str;
-}
-
-/**
- * Find all image tags that are linked to the current Klassenbuch (component = 'mod_klassenbuch',
- * context = module context) and replace the image URL with the encoded file content.
- * @param $content
- * @param $contextid
- * @return mixed
- */
-function klassenbuch_fix_images($content, $contextid) {
-    global $CFG;
-    $baseurl = $CFG->wwwroot.'/pluginfile.php/'.$contextid.'/mod_klassenbuch/';
-    $baseurlq = preg_quote($baseurl);
-    $regex = "|<img.*?src=['\"]$baseurlq([^'\"]*?)['\"]|";
-    if (preg_match_all($regex, $content, $matches)) {
-        $fs = get_file_storage();
-        foreach ($matches[1] as $imgurl) {
-            $details = urldecode($imgurl);
-            $parts = explode('/', $details);
-            $area = array_shift($parts);
-            $itemid = array_shift($parts);
-            $name = array_pop($parts);
-            if (empty($parts)) {
-                $path = '/';
-            } else {
-                $path = '/'.implode('/', $parts).'/';
-            }
-            if ($file = $fs->get_file($contextid, 'mod_klassenbuch', $area, $itemid, $path, $name)) {
-                $find = $baseurl.$imgurl;
-                $replace = '@'.base64_encode($file->get_content());
-                $content = str_replace($find, $replace, $content);
-            }
-        }
-    }
-    return $content;
-}
-
 $stylev = array('width' => 0.5, 'cap' => 'butt', 'join' => 'miter', 'dash' => 0, 'color' => array(255, 0, 0));
 
 $allchapters = $DB->get_records('klassenbuch_chapters', array('klassenbuchid' => $klassenbuch->id), 'pagenum');
@@ -159,7 +86,7 @@ if (file_exists($pdfdetailsfile)) {
 }
 
 // Create new PDF document.
-$pdf = new KlassenbuchPDF();
+$pdf = new \klassenbuchtool_print\klassenbuch_pdf();
 
 // Set document information.
 $pdf->SetAuthor($pdfauthorname);
@@ -253,13 +180,16 @@ foreach ($chapters as $ch) {
     $content .= klassenbuch_output_attachments($chapter->id, $context);
 
     // Remove problem characters.
-    $content = klassenbuch_replaceSpecial($content);
+    $content = pdf_helper::replace_special($content);
+
+    // Tidy styles.
+    $content = pdf_helper::tidy_styles($content);
 
     $content = str_replace($link1, '#ch', $content);
     $content = str_replace($link2, '#top', $content);
 
     // Embed the content of any images that are part of this Klassenbuch.
-    $content = klassenbuch_fix_images($content, $context->id);
+    $content = pdf_helper::fix_images($content, $context->id);
 
     $pdf->writeHTMLCell($w = 0, $h = 0, $x = '', $y = '', $content, $border = 0, $ln = 1, $fill = 0, $reseth = true, $align = '',
                         $autopadding = true);

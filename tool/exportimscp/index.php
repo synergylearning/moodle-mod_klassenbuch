@@ -46,12 +46,8 @@ $context = context_module::instance($cm->id);
 require_capability('mod/klassenbuch:read', $context);
 require_capability('klassenbuchtool/exportimscp:export', $context);
 
-$strklassenbuchs = get_string('modulenameplural', 'klassenbuch');
-$strklassenbuch = get_string('modulename', 'klassenbuch');
-$strtop = get_string('top', 'klassenbuch');
-
-add_to_log($course->id, 'klassenbuch', 'generateimscp', 'tool/generateimscp/index.php?id='.$cm->id, $klassenbuch->id, $cm->id);
+\klassenbuchtool_exportimscp\event\klassenbuch_exported::create_from_klassenbuch($klassenbuch, $context)->trigger();
 
 $file = klassenbuchtool_exportimscp_build_package($klassenbuch, $context);
 
-send_stored_file($file, 10, 0, true, clean_filename($klassenbuch->name).'.zip');
+send_stored_file($file, 10, 0, true, array('filename' => clean_filename($klassenbuch->name).'.zip'));

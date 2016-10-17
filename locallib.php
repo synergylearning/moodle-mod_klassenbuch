@@ -167,10 +167,22 @@ function klassenbuch_log($str1, $str2, $level = 0) {
     }
 }
 
-function klassenbuch_add_fake_block($chapters, $chapter, $klassenbuch, $cm, $edit) {
+/**
+ * @param $chapters
+ * @param $chapter
+ * @param $klassenbuch
+ * @param $cm
+ * @param $edit
+ * @param int $childid if supplied, links will be to parent.php, not view.php
+ */
+function klassenbuch_add_fake_block($chapters, $chapter, $klassenbuch, $cm, $edit, $childid = null) {
     global $OUTPUT, $PAGE;
 
-    $toc = klassenbuch_get_toc($chapters, $chapter, $klassenbuch, $cm, $edit, 0);
+    $toc = klassenbuch_get_toc($chapters, $chapter, $klassenbuch, $cm, $edit);
+
+    if ($childid) {
+        $toc = preg_replace('/view\.php\?id=(\d+)/', 'parent.php?id=$1&amp;userid='.$childid, $toc);
+    }
 
     if ($edit) {
         $toc .= '<div class="klassenbuch_faq">';
@@ -314,9 +326,18 @@ function klassenbuch_get_toc($chapters, $chapter, $klassenbuch, $cm, $edit) {
                 $ch->pagenum.'&amp;subchapter='.$ch->subchapter.'"><img src="'.
                 $OUTPUT->pix_url('add', 'mod_klassenbuch').'" class="iconsmall" alt="'.get_string('addafter', 'mod_klassenbuch').
                 '" /></a>';
-            $toc .= ' <a title="'.get_string('send', 'klassenbuch').'" href="send.php?id='.$cm->id.'&amp;chapterid='.$chapter->id.
+            $toc .= ' <a title="'.get_string('send', 'klassenbuch').'" href="send.php?id='.$cm->id.'&amp;chapterid='.$ch->id.
                 '&amp;sesskey='.sesskey().'"><img src="'.$OUTPUT->pix_url('email', 'mod_klassenbuch').
                 '" height="11" class="iconsmall" alt="'.get_string('send', 'klassenbuch').'" /></a>';
+
+            // SYNERGY LEARNING - conditionally display class plan link START.
+            if ($klassenbuch->showclassplan && has_capability('klassenbuchtool/lernschritte:view', $context)) {
+                $link = new moodle_url('/mod/klassenbuch/classplan.php', array('id' => $cm->id, 'chapterid' => $ch->id));
+                $icon = new pix_icon('i/calendar',
+                                    get_string('viewclassplan', 'mod_klassenbuch'));
+                $toc .= $OUTPUT->action_icon($link, $icon);
+            }
+            // SYNERGY LEARNING - conditionally display class plan link END.
 
             $toc .= (!$ch->subchapter) ? '<ul>' : '</li>';
             $first = 0;
@@ -537,13 +558,13 @@ function klassenbuch_output_attachments($chapterid, $context, $plain = false) {
     if ($files) {
         foreach ($files as $file) {
             $filename = $file->get_filename();
-            $path = moodle_url::make_pluginfile_url($context->id, 'mod_klassenbuch', 'attachment', $chapterid, '/', $filename);
+            $path = moodle_url::make_pluginfile_url($context->id, 'mod_klassenbuch', 'attachment', $chapterid, '/', $filename, true);
 
             if ($plain) {
                 $output .= $path."\n";
             } else {
                 $mimetype = $file->get_mimetype();
-                $iconimage = '<img src="'.$OUTPUT->pix_url(file_mimetype_icon($mimetype)).'" class="icon" alt="'.$mimetype.'" />';
+                $iconimage = '<img src="'.$OUTPUT->pix_url(file_mimetype_icon($mimetype)).'" class="icon" alt="'.$mimetype.'" width="16" height="16" />';
 
                 $output .= "<a href=\"$path\">$iconimage</a> ";
                 $output .= format_text("<a href=\"$path\">".s($filename)."</a>", FORMAT_HTML, array('context' => $context));

@@ -49,6 +49,7 @@ require_capability('mod/klassenbuch:edit', $context);
 require_sesskey();
 
 echo $OUTPUT->header();
+echo $OUTPUT->heading(format_string($klassenbuch->name));
 
 // Status arrays.
 $mailcount = 0;
@@ -67,6 +68,13 @@ $urlinfo = parse_url($CFG->wwwroot);
 $hostname = $urlinfo['host'];
 $replytouser = get_config('klassenbuch', 'replytouser');
 
+$allowedtoread = get_users_by_capability($context, 'mod/klassenbuch:read', 'u.id');
+
+$checkanon = false;
+if (file_exists($CFG->dirroot.'/local/gitemplate')) {
+    $checkanon = true;
+}
+
 foreach ($subscribedusers as $userto) {
 
     if ($userto->emailstop) {
@@ -77,11 +85,13 @@ foreach ($subscribedusers as $userto) {
 
     // Set this so that the capabilities are cached, and environment matches receiving user
     // Make sure we're allowed to see it...
-    if (!has_capability('mod/klassenbuch:read', $context, $userto)) {
+    if (!array_key_exists($userto->id, $allowedtoread)) {
         continue;
     }
 
-    $viewfullnames = has_capability('moodle/site:viewfullnames', $context);
+    if ($checkanon && \local_gitemplate\local\anonymous::is_anonymous_user($userto->id)) {
+        continue; // Make sure the anonymous user cannot get any email.
+    }
 
     // Prepare to actually send the post now, and build up the content.
 
@@ -106,16 +116,17 @@ foreach ($subscribedusers as $userto) {
     if (!$mailresult = email_to_user($userto, $userfrom, $postsubject, $posttext,
                                      $posthtml, '', '', $replytouser)
     ) {
-        add_to_log($course->id, 'klassenbuch', 'mail error', "view.php?id={$klassenbuch->id}&chapterid={$chapter->id}",
-                   substr(format_string($chapter->subject, true), 0, 30), $cm->id, $userto->id);
         $errorcount++;
     } else if ($mailresult !== 'emailstop') {
         $mailcount++;
     }
 }
 
-notice($mailcount." Teilnehmer erhielten $chapter->id, '$chapter->title'", new moodle_url('/mod/klassenbuch/view.php',
-                                                                                          array( 'id' => $cm->id,
-                                                                                               'chapterid' => $chapter->id)));
+$info = (object)array(
+    'count' => $mailcount,
+    'chapter' => "'{$chapter->title}'",
+);
+$msg = get_string('mailsent', 'mod_klassenbuch', $info);
+notice($msg, new moodle_url('/mod/klassenbuch/view.php', array( 'id' => $cm->id, 'chapterid' => $chapter->id)));
 
 echo $OUTPUT->footer();

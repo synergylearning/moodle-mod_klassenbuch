@@ -25,5 +25,5 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version   = 2011101400; // The current plugin version (Date: YYYYMMDDXX).
+$plugin->version   = 2011101401; // The current plugin version (Date: YYYYMMDDXX).
 $plugin->component = 'klassenbuchtool_print'; // Full name of the plugin (used for diagnostics).

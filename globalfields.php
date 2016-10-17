@@ -78,7 +78,7 @@ if ($action == 'addfield') {
 // Display.
 $strmodulename = get_string("modulename", "klassenbuch");
 
-echo $OUTPUT->heading($strmodulename.': '.get_string('manageglobalfields', 'klassenbuch'));
+echo $OUTPUT->heading($strmodulename.': '.get_string('manageglobalfields', 'klassenbuch'), 3);
 echo $OUTPUT->box_start();
 
 // Add field.

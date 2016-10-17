@@ -174,12 +174,13 @@ if (!$nothing) {
     foreach ($newchapters as $ch) {
         $ch->pagenum = $i;
         $DB->update_record('klassenbuch_chapters', $ch);
+        $ch = $DB->get_record('klassenbuch_chapters', array('id' => $ch->id));
+
+        \mod_klassenbuch\event\chapter_updated::create_from_chapter($klassenbuch, $context, $ch)->trigger();
+
         $i++;
     }
 }
-
-add_to_log($course->id, 'course', 'update mod', '../mod/klassenbuch/view.php?id='.$cm->id, 'klassenbuch '.$klassenbuch->id);
-add_to_log($course->id, 'klassenbuch', 'update', 'view.php?id='.$cm->id, $klassenbuch->id, $cm->id);
 
 klassenbuch_preload_chapters($klassenbuch); // Fix structure.
 $DB->set_field('klassenbuch', 'revision', $klassenbuch->revision + 1, array('id' => $klassenbuch->id));

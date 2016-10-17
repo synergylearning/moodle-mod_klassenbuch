@@ -8,6 +8,10 @@
     margin-bottom: 20px;
 }
 
+.mod_klassenbuch .klassenbuch_chapter_title .action-icon img.smallicon {
+    vertical-align: middle;
+}
+
 .mod_klassenbuch img.bigicon {
   vertical-align: middle;
   margin-right: 4px;
@@ -135,4 +139,12 @@
 .mod_klassenbuch .subscription {
     text-align: right;
     margin-bottom: 1em;
+}
+
+#page-mod-klassenbuch-view .yui3-datatable-editor-overlay textarea {
+    overflow: hidden;
+}
+
+#page-mod-klassenbuch-classplan textarea {
+    width: 100%;
 }

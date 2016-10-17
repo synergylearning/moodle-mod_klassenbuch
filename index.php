@@ -47,8 +47,9 @@ $PAGE->set_title($course->shortname.': '.$strklassenbuchs);
 $PAGE->set_heading($course->fullname);
 $PAGE->navbar->add($strklassenbuchs);
 echo $OUTPUT->header();
+echo $OUTPUT->heading(format_string($klassenbuch->name));
 
-add_to_log($course->id, 'klassenbuch', 'view all', 'index.php?id='.$course->id, '');
+\mod_klassenbuch\event\course_module_instance_list_viewed::create_from_course($course)->trigger();
 
 // Get all the appropriate data.
 if (!$klassenbuchs = get_all_instances_in_course('klassenbuch', $course)) {

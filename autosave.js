@@ -21,7 +21,9 @@ M.mod_klassenbuch_autosave = {
             return;
         }
 
-        tinyMCE.triggerSave();
+        if (typeof tinyMCE !== 'undefined') {
+            tinyMCE.triggerSave();
+        }
         var formObject = document.getElementById(formid);
         formObject.thisisautosave.value = 1;
 
@@ -39,8 +41,13 @@ M.mod_klassenbuch_autosave = {
                     var newchapternode = formobj.newchapter;
                     if (chapteridnode) {
                         var chapterid = parseInt(chapteridnode.value, 10);
-                        var respparsed = self.Y.JSON.parse(resp.responseText);
-                        if(respparsed !== undefined) {
+                        var respparsed = { success: 0 };
+                        try {
+                            respparsed = JSON.parse(resp.responseText);
+                        } catch (e) {
+                            // Ignore any errors.
+                        }
+                        if (respparsed !== undefined) {
                             if (chapterid === 0 || isNaN(chapterid)) {
                                 if(respparsed.newid !== undefined) {
                                     chapteridnode.value = respparsed.newid;
@@ -49,7 +56,7 @@ M.mod_klassenbuch_autosave = {
                                     newchapternode.value = respparsed.newchapter;
                                 }
                             }
-                            if(respparsed.success === 1) {
+                            if (respparsed.success === 1) {
                                 var d = new Date();
                                 var timestring = d.toLocaleTimeString();
                                 var autodisdiv = document.getElementById('autosaveddisplay');

@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die;
-global $CFG;
+global $CFG, $OUTPUT;
 
 if ($ADMIN->fulltree) {
     require_once("$CFG->dirroot/mod/klassenbuch/lib.php");
@@ -53,10 +53,21 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('klassenbuch/autosaveseconds',
                     get_string('autosaveseconds', 'klassenbuch'), '', 60, PARAM_INT));
 
-    $pixpath = "$CFG->wwwroot/pix";
-    $imagetag = '<img class="iconsmall" src="'.$pixpath.'/t/edit.gif" alt="' . get_string('edit') . '"/>';
-    $eicon = '<a target="_blank" title="' . get_string('edit') . '" href="'.$CFG->wwwroot.'/mod/klassenbuch/globalfields.php">'.
-        $imagetag.'</a>';
-    $stgfh = '<p>' . $eicon . '  ' . get_string('manageglobalfields', 'klassenbuch') . '</p>';
-    $settings->add(new admin_setting_heading('klassenbuch/globalfields_header', get_string('globalfields', 'klassenbuch'), $stgfh));
+    $editurl = new moodle_url('/mod/klassenbuch/globalfields.php');
+    $eicon = $OUTPUT->pix_icon('i/edit', '', 'moodle', array('class' => 'iconsmall')).
+        get_string('manageglobalfields', 'mod_klassenbuch');
+    $eicon = html_writer::link($editurl, $eicon);
+    $strman = html_writer::tag('p', $eicon);
+    $settings->add(new admin_setting_heading('klassenbuch/globalfields_header',
+                                             get_string('globalfields', 'klassenbuch'), $strman));
+    
+    // include the settings of klassenbuchtool subplugins
+    $tools = core_component::get_plugin_list('klassenbuchtool');
+    foreach ($tools as $tool => $path) {
+        if (file_exists($settingsfile = $path . '/settings.php')) {
+            $settings->add(new admin_setting_heading('klassenbuchtool'.$tool,
+                    get_string('pluginname', 'klassenbuchtool_' . $tool), ''));
+            include($settingsfile);
+        }
+    }
 }

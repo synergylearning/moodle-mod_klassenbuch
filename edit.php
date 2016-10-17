@@ -149,10 +149,6 @@ if ($mform->is_cancelled()) {
     }
     $DB->update_record('klassenbuch_chapters', $data);
 
-    add_to_log($course->id, 'course', 'update mod', '../mod/klassenbuch/view.php?id=' . $cm->id, 'klassenbuch ' . $klassenbuch->id);
-    add_to_log($course->id, 'klassenbuch', 'update', 'view.php?id=' . $cm->id . '&chapterid=' . $data->id,
-               $klassenbuch->id, $cm->id);
-
     if (!isset($data->customcontenthidden)) {
         $data->customcontenthidden = array();
     }
@@ -193,6 +189,13 @@ if ($mform->is_cancelled()) {
 
     klassenbuch_preload_chapters($klassenbuch); // Fix structure.
 
+    $chapter = $DB->get_record('klassenbuch_chapters', array('id' => $data->id));
+    if ($data->newchapter) {
+        \mod_klassenbuch\event\chapter_created::create_from_chapter($klassenbuch, $context, $chapter)->trigger();
+    } else {
+        \mod_klassenbuch\event\chapter_updated::create_from_chapter($klassenbuch, $context, $chapter)->trigger();
+    }
+
     redirect("view.php?id=$cm->id&chapterid=$data->id");
 }
 
@@ -201,8 +204,12 @@ $PAGE->set_title(format_string($klassenbuch->name));
 $PAGE->add_body_class('mod_klassenbuch');
 $PAGE->set_heading(format_string($course->fullname));
 
+// Add TOC block.
+$chapters = klassenbuch_preload_chapters($klassenbuch);
+klassenbuch_add_fake_block($chapters, $chapter, $klassenbuch, $cm, $USER->editing);
+
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('editingchapter', 'mod_klassenbuch'));
+echo $OUTPUT->heading(format_string($klassenbuch->name));
 
 $mform->display();
 

@@ -1,0 +1,10 @@
+{
+  "name": "moodle-klassenbuchtool_lernschritte-edittable",
+  "builds": {
+    "moodle-klassenbuchtool_lernschritte-edittable": {
+      "jsfiles": [
+        "edittable.js"
+      ]
+    }
+  }
+}

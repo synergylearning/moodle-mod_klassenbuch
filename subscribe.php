@@ -57,12 +57,13 @@ if ($userid) {
     $user = $USER;
 }
 
-if (groupmode($course, $cm)
-    and !klassenbuch_is_subscribed($user->id, $klassenbuch->id)
-    and !has_capability('moodle/site:accessallgroups', $context)
+$groupmode = groups_get_activity_groupmode($cm);
+$issubscribed = klassenbuch_is_subscribed($user->id, $klassenbuch->id);
+
+if ($groupmode && !$issubscribed && !has_capability('moodle/site:accessallgroups', $context)
 ) {
-    if (!mygroupid($course->id)) {
-        error('Sorry, but you must be a group member to subscribe.');
+    if (!groups_get_all_groups($course->id, $USER->id)) {
+        print_error('cannotsubscribe', 'mod_klassenbuch');
     }
 }
 
@@ -71,6 +72,7 @@ if (empty($force) && !is_enrolled($context, $USER, '', true)) { // Guests and vi
     $PAGE->set_heading($course->fullname);
     if (isguestuser()) {
         echo $OUTPUT->header();
+        echo $OUTPUT->heading(format_string($klassenbuch->name));
         echo $OUTPUT->confirm(get_string('subscribeenrolledonly', 'klassenbuch').'<br /><br />'.get_string('liketologin'),
                               get_login_url(), new moodle_url('/mod/klassenbuch/view.php', array('id' => $cm->id)));
         echo $OUTPUT->footer();
@@ -105,26 +107,24 @@ $info->name = fullname($user);
 $info->book = format_string($klassenbuch->name);
 
 if (klassenbuch_is_subscribed($user->id, $klassenbuch->id)) {
-    if (klassenbuch_unsubscribe($user->id, $klassenbuch->id)) {
-        add_to_log($course->id, "klassenbuch", "unsubscribe", "view.php?id=$cm->id", $klassenbuch->id, $cm->id);
-        redirect($returnto, get_string("nownotsubscribed", "klassenbuch", $info), 1);
-    } else {
-        error("Could not unsubscribe you from that klassenbuch", $_SERVER["HTTP_REFERER"]);
+    if ($subscribeid = klassenbuch_unsubscribe($user->id, $klassenbuch->id)) {
+        \mod_klassenbuch\event\subscription_deleted::create_from_userid($klassenbuch, $context, $user->id, $subscribeid)->trigger();
     }
+    redirect($returnto, get_string("nownotsubscribed", "klassenbuch", $info), 1);
 
 } else { // Subscribe.
     if ($klassenbuch->forcesubscribe == KLASSENBUCH_DISALLOWSUBSCRIBE &&
         !has_capability('mod/klassenbuch:managesubscriptions', $context)
     ) {
-        error(get_string('disallowsubscribe', 'klassenbuch'), $_SERVER["HTTP_REFERER"]);
+        print_error('disallowsubscribe', 'mod_klassenbuch', $_SERVER["HTTP_REFERER"]);
     }
     if (!has_capability('mod/klassenbuch:read', $context)) {
-        error("Could not subscribe you to that klassenbuch", $_SERVER["HTTP_REFERER"]);
+        print_error('couldnotsubscribe', 'mod_klassenbuch', $_SERVER["HTTP_REFERER"]);
     }
-    if (klassenbuch_subscribe($user->id, $klassenbuch->id)) {
-        add_to_log($course->id, "klassenbuch", "subscribe", "view.php?id=$cm->id", $klassenbuch->id, $cm->id);
+    if ($subscribeid = klassenbuch_subscribe($user->id, $klassenbuch->id)) {
+        \mod_klassenbuch\event\subscription_created::create_from_userid($klassenbuch, $context, $user->id, $subscribeid)->trigger();
         redirect($returnto, get_string("nowsubscribed", "klassenbuch", $info), 2);
     } else {
-        error("Could not subscribe you to that klassenbuch", $_SERVER["HTTP_REFERER"]);
+        print_error('couldnotsubscribe', 'mod_klassenbuch', $_SERVER["HTTP_REFERER"]);
     }
 }

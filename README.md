@@ -13,6 +13,10 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details: http://www.gnu.org/copyleft/gpl.html
 
+Changes:
+
+* 2016-10-17: Several Moodle 2.7+ compatibility fixes, 'class plan' editing option
+
 Differences from the book module:
 
 * Ability of students to subscribe to email updates about the book (sent out when the teacher clicks on the 'email' icon for a chapter).
@@ -51,7 +55,6 @@ Intentionally omitted features:
 * PDF export - there is no elegant way AFAIK to convert HTML to PDF, use virtual PDF printer or better use DocBook format for authoring
 * detailed student tracking (postponed till officially supported)
 * export as zipped set of HTML pages - instead use browser command Save page as... in print view
-
 
 Future:
 

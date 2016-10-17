@@ -23,24 +23,11 @@
  */
 
 defined('MOODLE_INTERNAL') || die;
-global $CFG;
 
-if (!isset($plugin)) {
-    $plugin = new stdClass(); // Avoid warnings in Moodle 2.5 and below.
-}
-
-$plugin->version   = 2013070800; // The current module version (Date: YYYYMMDDXX).
-$plugin->requires  = 2011120500; // Requires this Moodle version.
+$plugin->version   = 2014101501; // The current module version (Date: YYYYMMDDXX).
+$plugin->requires  = 2014051200	; // Moodle 2.7+.
 $plugin->cron      = 0;          // Period for cron to check this module (secs).
 $plugin->component = 'mod_klassenbuch'; // Full name of the plugin (used for diagnostics).
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = "2.2 (2013070800)"; // User-friendly version number.
 
-if ($CFG->branch < 26) {
-    $module->version = $plugin->version;
-    $module->requires = $plugin->requires;
-    $module->cron = $plugin->cron;
-    $module->component = $plugin->component;
-    $module->maturity = $plugin->maturity;
-    $module->release = $plugin->release;
-}
+$plugin->maturity  = MATURITY_STABLE;
+$plugin->release   = "2.7+ (2014101501)"; // User-friendly version number.

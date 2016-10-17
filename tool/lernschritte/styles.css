@@ -1,0 +1,40 @@
+#page-mod-klassenbuch-view #dtable {
+    margin-top: 20px;
+}
+#page-mod-klassenbuch-view .yui3-datatable-table {
+    /*display: table;*/ /* GILMTWO-718 - For responsive widths */
+    border-collapse: collapse;
+}
+
+#page-mod-klassenbuch-view .yui3-datatable-editor-overlay textarea {
+    min-width:200px;
+}
+
+#page-mod-klassenbuch-view .yui3-datatable-table  .yui3-datatable-cell {
+    padding: 2px 4px;
+}
+
+#page-mod-klassenbuch-view .yui3-datatable-table  .yui3-datatable-cell .sorticon {
+    cursor: pointer;
+}
+
+#page-mod-klassenbuch-view .yui3-datatable-table .unsaved .yui3-datatable-cell {
+    background: #ffc4c4;
+}
+
+#page-mod-klassenbuch-view .yui3-datatable-col-id {
+    display : none;
+    border-right: none;
+}
+
+#page-mod-klassenbuch-view .addrow {
+    border: 1px solid #cccccc;
+    border-top: none;
+    text-align: right;
+    padding: 4px;
+}
+
+#page-mod-klassenbuch-view .yui3-datatable-table tr {
+    height: 60px;
+    border-bottom: 1px solid #ccc;
+}

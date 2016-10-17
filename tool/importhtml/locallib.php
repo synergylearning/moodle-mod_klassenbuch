@@ -78,8 +78,7 @@ function toolklassenbuch_importhtml_import_chapters($package, $type, $klassenbuc
                 $chapter->id = $DB->insert_record('klassenbuch_chapters', $chapter);
                 $chapters[$chapter->id] = $chapter;
 
-                add_to_log($klassenbuch->course, 'klassenbuch', 'update', 'view.php?id='.$context->instanceid.'&chapterid='.
-                                               $chapter->id, $klassenbuch->id, $context->instanceid);
+                \mod_klassenbuch\event\chapter_created::create_from_chapter($klassenbuch, $context, $chapter)->trigger();
             }
         }
     }
@@ -149,8 +148,6 @@ function toolklassenbuch_importhtml_import_chapters($package, $type, $klassenbuc
         }
     }
 
-    add_to_log($klassenbuch->course, 'course', 'update mod', '../mod/klassenbuch/view.php?id='.$context->instanceid,
-               'klassenbuch '.$klassenbuch->id);
     $fs->delete_area_files($context->id, 'mod_klassenbuch', 'importhtmltemp', 0);
 
     // Update the revision flag - this takes a long time, better to refetch the current value.

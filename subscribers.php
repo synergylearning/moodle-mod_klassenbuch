@@ -55,6 +55,7 @@ if (has_capability('mod/klassenbuch:managesubscriptions', $context)) {
 }
 
 echo $OUTPUT->header();
+echo $OUTPUT->heading(format_string($klassenbuch->name));
 
 $url->remove_params('group');
 groups_print_activity_menu($cm, $url);
@@ -63,10 +64,10 @@ $groupmode = groups_get_activity_groupmode($cm);
 
 if (empty($USER->subscriptionsediting)) { // Display an overview of subscribers.
     if (!$users = klassenbuch_subscribed_users($course, $klassenbuch, $currentgroup)) {
-        echo $OUTPUT->heading(get_string("nosubscribers", "klassenbuch"));
+        echo $OUTPUT->heading(get_string("nosubscribers", "klassenbuch"), 3);
 
     } else {
-        echo $OUTPUT->heading(get_string("subscribersto", "klassenbuch", "'".format_string($klassenbuch->name)."'"));
+        echo $OUTPUT->heading(get_string("subscribersto", "klassenbuch", "'".format_string($klassenbuch->name)."'"), 3);
 
         echo '<table align="center" cellpadding="5" cellspacing="5">';
         foreach ($users as $user) {

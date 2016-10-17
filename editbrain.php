@@ -122,8 +122,8 @@ if ($data = $mform->get_data()) {
         }
 
         // Make sure we're not accidentally creating lots and lots of new chapters.
-        if (!isset($SESSION->uniqueeditingids)) {
-            $SESSION->uniqueeditingids = array();
+        if (!isset($SESSION->klassenbuch_uniqueeditingids)) {
+            $SESSION->klassenbuch_uniqueeditingids = array();
         }
         if (in_array($data->uniqueeditingid, $SESSION->klassenbuch_uniqueeditingids)) {
             // Something is wrong - do not autosave.
@@ -166,10 +166,6 @@ if ($data = $mform->get_data()) {
         $data->contentformat = FORMAT_HTML;
     }
     $DB->update_record('klassenbuch_chapters', $data);
-
-    add_to_log($course->id, 'course', 'update mod', '../mod/klassenbuch/view.php?id=' . $cm->id, 'klassenbuch ' . $klassenbuch->id);
-    add_to_log($course->id, 'klassenbuch', 'update', 'view.php?id=' . $cm->id . '&chapterid=' . $data->id,
-               $klassenbuch->id, $cm->id);
 
     $result['success'] = 1;
 

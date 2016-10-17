@@ -1,0 +1,17 @@
+{
+    "moodle-klassenbuchtool_lernschritte-edittable": {
+        "requires": [
+        "node",
+        "event-key",
+        "io",
+        "datatype-date",
+        "datatable",
+        "sortable",
+        "datatable-mutable",
+        "gallery-datatable-editable",
+        "gallery-datatable-celleditor-popup",
+        "gallery-datatable-celleditor-inline",
+        "resize"
+        ]
+    }
+}

@@ -76,6 +76,8 @@ if ($allowedit and !$chapters) {
 }
 // Check chapterid and read chapter data.
 if ($chapterid == '0') { // Go to first chapter if no given.
+    \mod_klassenbuch\event\course_module_viewed::create_from_klassenbuch($klassenbuch, $context)->trigger();
+
     foreach ($chapters as $ch) {
         if ($edit) {
             $chapterid = $ch->id;
@@ -108,7 +110,7 @@ unset($chapterid);
 
 // Security checks  END.
 
-add_to_log($course->id, 'klassenbuch', 'view', 'view.php?id='.$cm->id.'&amp;chapterid='.$chapter->id, $klassenbuch->id, $cm->id);
+\mod_klassenbuch\event\chapter_viewed::create_from_chapter($klassenbuch, $context, $chapter)->trigger();
 
 // Read standard strings.
 $strklassenbuchs = get_string('modulenameplural', 'mod_klassenbuch');
@@ -220,6 +222,7 @@ if ($nextid) {
 // Klassenbuch display HTML code.
 
 echo $OUTPUT->header();
+echo $OUTPUT->heading(format_string($klassenbuch->name));
 
 echo $subsdiv;
 
@@ -232,12 +235,21 @@ if (!$klassenbuch->customtitles) {
     $hidden = $chapter->hidden ? 'dimmed_text' : '';
     if (!$chapter->subchapter) {
         $currtitle = klassenbuch_get_chapter_title($chapter->id, $chapters, $klassenbuch, $context);
-        echo '<p class="klassenbuch_chapter_title '.$hidden.'">'.$currtitle.'</p>';
+        echo '<p class="klassenbuch_chapter_title '.$hidden.'">'.$currtitle;
     } else {
         $currtitle = klassenbuch_get_chapter_title($chapters[$chapter->id]->parent, $chapters, $klassenbuch, $context);
         $currsubtitle = klassenbuch_get_chapter_title($chapter->id, $chapters, $klassenbuch, $context);
-        echo '<p class="klassenbuch_chapter_title '.$hidden.'">'.$currtitle.'<br />'.$currsubtitle.'</p>';
+        echo '<p class="klassenbuch_chapter_title '.$hidden.'">'.$currtitle.'<br />'.$currsubtitle;
     }
+    // SYNERGY LEARNING - conditionally display class plan link.
+        if ($klassenbuch->showclassplan && has_capability('klassenbuchtool/lernschritte:view', $context)) {
+        $link = new moodle_url('/mod/klassenbuch/classplan.php', array('id' => $context->instanceid, 'chapterid' => $chapter->id));
+        $icon = new pix_icon('i/calendar',
+                            get_string('viewclassplan', 'mod_klassenbuch'));
+        echo $OUTPUT->action_icon($link, $icon);
+    }
+    echo '</p>';
+
 }
 
 if (!$chapter->contenthidden) {
@@ -264,6 +276,8 @@ echo $OUTPUT->box_end();
 
 // Lower navigation.
 echo '<div class="navbottom">'.$chnavigation.'</div>';
+
+echo klassenbuch_get_subcontent($chapter->id, $context);
 
 echo $OUTPUT->footer();
 

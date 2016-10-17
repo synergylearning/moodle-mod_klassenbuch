@@ -35,7 +35,6 @@ $course = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST)
 $klassenbuch = $DB->get_record('klassenbuch', array('id' => $cm->instance), '*', MUST_EXIST);
 
 require_login($course, false, $cm);
-require_sesskey();
 
 $context = context_module::instance($cm->id);
 require_capability('mod/klassenbuch:edit', $context);
@@ -51,6 +50,7 @@ $PAGE->set_heading(format_string($course->fullname));
 
 // Form processing.
 if ($confirm) { // The operation was confirmed.
+    require_sesskey();
     $fs = get_file_storage();
     if (!$chapter->subchapter) { // Delete all its subchapters if any.
         $chapters = $DB->get_records('klassenbuch_chapters', array('klassenbuchid' => $klassenbuch->id),
@@ -70,8 +70,7 @@ if ($confirm) { // The operation was confirmed.
     $fs->delete_area_files($context->id, 'mod_klassenbuch', 'chapter', $chapter->id);
     $DB->delete_records('klassenbuch_chapters', array('id' => $chapter->id));
 
-    add_to_log($course->id, 'course', 'update mod', '../mod/klassenbuch/view.php?id='.$cm->id, 'klassenbuch '.$klassenbuch->id);
-    add_to_log($course->id, 'klassenbuch', 'update', 'view.php?id='.$cm->id, $klassenbuch->id, $cm->id);
+    \mod_klassenbuch\event\chapter_deleted::create_from_chapter($klassenbuch, $context, $chapter)->trigger();
 
     klassenbuch_preload_chapters($klassenbuch); // Fix structure.
     $DB->set_field('klassenbuch', 'revision', $klassenbuch->revision + 1, array('id' => $klassenbuch->id));
@@ -80,6 +79,7 @@ if ($confirm) { // The operation was confirmed.
 }
 
 echo $OUTPUT->header();
+echo $OUTPUT->heading(format_string($klassenbuch->name));
 
 // The operation has not been confirmed yet so ask the user to do so.
 if ($chapter->subchapter) {

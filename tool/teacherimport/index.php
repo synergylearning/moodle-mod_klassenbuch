@@ -104,7 +104,7 @@ if ($mform->is_cancelled()) {
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('import', 'klassenbuchtool_teacherimport'));
+echo $OUTPUT->heading(format_string($klassenbuch->name));
 
 $mform->display();
 

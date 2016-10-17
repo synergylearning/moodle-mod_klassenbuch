@@ -90,7 +90,7 @@ class klassenbuch_chapter_edit_form extends moodleform {
         $mform->addElement('hidden', 'newchapter', 0);
         $mform->setType('newchapter', PARAM_INT);
 
-        $mform->addElement('static', 'autosaveddisplay', '<div id="autosaveddisplay"></div>');
+        $mform->addElement('html', '<div id="autosaveddisplay"></div>');
 
         $mform->addElement('filemanager', 'attachments', get_string('attachment', 'mod_klassenbuch'), null, $attachoptions);
 

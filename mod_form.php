@@ -80,6 +80,11 @@ class mod_klassenbuch_mod_form extends moodleform_mod {
         $mform->addElement('selectyesno', 'collapsesubchapters', get_string('collapsesubchapters', 'klassenbuch'));
         // SYNERGY - add collapsesubchapters option to settings.
 
+        // SYNERGY LEARNING - add 'show classplan' checkbox START.
+        $mform->addElement('checkbox', 'showclassplan', get_string('showclassplan', 'klassenbuch'));
+        $mform->setDefault('showclassplan', 0);
+        // SYNERGY LEARNING - add 'show classplan' checkbox END.
+
         // -------------------------------------------------------------------------------
         $this->standard_coursemodule_elements();
 

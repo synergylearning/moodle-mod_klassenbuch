@@ -63,14 +63,14 @@ $mform = new klassenbuchtool_importhtml_form(null, array('id' => $id, 'chapterid
 // If data submitted, then process and store.
 if ($mform->is_cancelled()) {
     if (empty($chapter->id)) {
-        redirect("view.php?id=$cm->id");
+        redirect($CFG->wwwroot."/mod/klassenbuch/view.php?id=$cm->id");
     } else {
-        redirect("view.php?id=$cm->id&chapterid=$chapter->id");
+        redirect($CFG->wwwroot."/mod/klassenbuch/view.php?id=$cm->id&chapterid=$chapter->id");
     }
 
 } else if ($data = $mform->get_data()) {
     echo $OUTPUT->header();
-    echo $OUTPUT->heading(get_string('importingchapters', 'klassenbuchtool_importhtml'));
+    echo $OUTPUT->heading(format_string($klassenbuch->name));
 
     // This is a bloody hack - children do not try this at home!
     $fs = get_file_storage();
@@ -87,7 +87,7 @@ if ($mform->is_cancelled()) {
 }
 
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('import', 'klassenbuchtool_importhtml'));
+echo $OUTPUT->heading(format_string($klassenbuch->name));
 
 $mform->display();
 

@@ -345,5 +345,20 @@ function xmldb_klassenbuch_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2012102501, 'klassenbuch');
     }
 
+    if ($oldversion < 2014101500) {
+
+        // Define field showclassplan to be added to klassenbuch.
+        $table = new xmldb_table('klassenbuch');
+        $field = new xmldb_field('showclassplan', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0', 'forcesubscribe');
+
+        // Conditionally launch add field showclassplan.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Klassenbuch savepoint reached.
+        upgrade_mod_savepoint(true, 2014101500, 'klassenbuch');
+    }
+
     return true;
 }

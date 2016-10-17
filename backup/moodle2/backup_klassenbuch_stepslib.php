@@ -76,6 +76,9 @@ class backup_klassenbuch_activity_structure_step extends backup_activity_structu
         foreach ($fieldids as $fieldid) {
             $chapter->annotate_files('mod_klassenbuch', 'customcontent_'.$fieldid, 'id');
         }
+        
+        // add backup connection for chapter related data.
+        $this->add_subplugin_structure('klassenbuchtool', $chapter, true);
 
         // Return the root element (klassenbuch), wrapped into standard activity structure.
         return $this->prepare_activity_structure($klassenbuch);

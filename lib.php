@@ -21,7 +21,6 @@
  * @copyright  2012 Synergy Learning / Davo Smith (based on book module)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 defined('MOODLE_INTERNAL') || die;
 
 // SYNERGY - add extra subscription definitions.
@@ -36,7 +35,7 @@ define('KLASSENBUCH_FORCESUBSCRIBE', 1); // No idea why the '1' values are dupli
  * @return array
  */
 function klassenbuch_get_numbering_types() {
-    require_once(dirname(__FILE__).'/locallib.php');
+    require_once(dirname(__FILE__) . '/locallib.php');
 
     return array(
         KLASSENBUCH_NUM_NONE => get_string('numbering0', 'mod_klassenbuch'),
@@ -90,6 +89,12 @@ function klassenbuch_update_instance($data, $mform) {
         $data->customtitles = 0;
     }
 
+    // SYNERGY LEARNING - add 'show classplan' checkbox START.
+    if (!isset($data->showclassplan)) {
+        $data->showclassplan = 0;
+    }
+    // SYNERGY LEARNING - add 'show classplan' checkbox END.
+
     $DB->update_record('klassenbuch', $data);
 
     $klassenbuch = $DB->get_record('klassenbuch', array('id' => $data->id));
@@ -114,6 +119,18 @@ function klassenbuch_delete_instance($id) {
         return false;
     }
 
+    // ... give plugins a chance to clean up some things before the module is deleted.
+    $plugins = get_plugin_list('klassenbuchtool');
+    foreach ($plugins as $plugin => $dir) {
+        if (file_exists("$dir/lib.php")) {
+            require_once("$dir/lib.php");
+        }
+        $function = 'klassenbuchtool_' . $plugin . '_delete_instance';
+        if (function_exists($function)) {
+            $function($klassenbuch);
+        }
+    }
+
     $DB->delete_records('klassenbuch_chapters', array('klassenbuchid' => $klassenbuch->id));
     $DB->delete_records('klassenbuch', array('id' => $klassenbuch->id));
 
@@ -133,9 +150,9 @@ function klassenbuch_user_outline($course, $user, $mod, $klassenbuch) {
     global $DB;
 
     if ($logs = $DB->get_records('log', array(
-                                             'userid' => $user->id, 'module' => 'klassenbuch',
-                                             'action' => 'view', 'info' => $klassenbuch->id
-                                        ), 'time ASC')
+        'userid' => $user->id, 'module' => 'klassenbuch',
+        'action' => 'view', 'info' => $klassenbuch->id
+            ), 'time ASC')
     ) {
 
         $numviews = count($logs);
@@ -238,12 +255,12 @@ function klassenbuch_scale_used_anywhere($scaleid) {
 function klassenbuch_get_view_actions() {
     $return = array('view', 'view all');
 
-    $plugins = get_plugin_list('klassenbuchtool');
+    $plugins = core_component::get_plugin_list('klassenbuchtool');
     foreach ($plugins as $plugin => $dir) {
         if (file_exists("$dir/lib.php")) {
             require_once("$dir/lib.php");
         }
-        $function = 'klassenbuchtool_'.$plugin.'_get_view_actions';
+        $function = 'klassenbuchtool_' . $plugin . '_get_view_actions';
         if (function_exists($function)) {
             if ($actions = $function()) {
                 $return = array_merge($return, $actions);
@@ -261,12 +278,12 @@ function klassenbuch_get_view_actions() {
 function klassenbuch_get_post_actions() {
     $return = array('update');
 
-    $plugins = get_plugin_list('klassenbuchtool');
+    $plugins = core_component::get_plugin_list('klassenbuchtool');
     foreach ($plugins as $plugin => $dir) {
         if (file_exists("$dir/lib.php")) {
             require_once("$dir/lib.php");
         }
-        $function = 'klassenbuchtool_'.$plugin.'_get_post_actions';
+        $function = 'klassenbuchtool_' . $plugin . '_get_post_actions';
         if (function_exists($function)) {
             if ($actions = $function()) {
                 $return = array_merge($return, $actions);
@@ -291,8 +308,6 @@ function klassenbuch_supports($feature) {
             return false;
         case FEATURE_GROUPINGS:
             return false;
-        case FEATURE_GROUPMEMBERSONLY:
-            return true;
         case FEATURE_MOD_INTRO:
             return true;
         case FEATURE_COMPLETION_TRACKS_VIEWS:
@@ -323,12 +338,12 @@ function klassenbuch_extend_settings_navigation(settings_navigation $settingsnav
         return;
     }
 
-    $plugins = get_plugin_list('klassenbuchtool');
+    $plugins = core_component::get_plugin_list('klassenbuchtool');
     foreach ($plugins as $plugin => $dir) {
         if (file_exists("$dir/lib.php")) {
             require_once("$dir/lib.php");
         }
-        $function = 'klassenbuchtool_'.$plugin.'_extend_settings_navigation';
+        $function = 'klassenbuchtool_' . $plugin . '_extend_settings_navigation';
         if (function_exists($function)) {
             $function($settingsnav, $klassenbuchnode);
         }
@@ -338,12 +353,12 @@ function klassenbuch_extend_settings_navigation(settings_navigation $settingsnav
     $url = new moodle_url('/mod/klassenbuch/tool/print/pdfklassenbuch.php', array('id' => $PAGE->cm->id, 'sesskey' => sesskey()));
     $action = new action_link($url, get_string('exportpdf', 'mod_klassenbuch'), new popup_action('click', $url));
     // Open as new window.
-    $klassenbuchnode->add(get_string('exportpdf', 'mod_klassenbuch'), $action, navigation_node::TYPE_SETTING, null, null,
-                          new pix_icon('pdf', '', 'klassenbuchtool_print', array('class' => 'icon')));
+    $klassenbuchnode->add(get_string('exportpdf', 'mod_klassenbuch'), $action, navigation_node::TYPE_SETTING,
+                            null, null, new pix_icon('pdf', '', 'klassenbuchtool_print', array('class' => 'icon')));
 
     $params = $PAGE->url->params();
     if (!empty($params['id']) and !empty($params['chapterid']) and
-        has_capability('mod/klassenbuch:edit', context_module::instance($PAGE->cm->id))
+            has_capability('mod/klassenbuch:edit', context_module::instance($PAGE->cm->id))
     ) {
         if (!empty($USER->editing)) {
             $string = get_string("turneditingoff");
@@ -353,11 +368,11 @@ function klassenbuch_extend_settings_navigation(settings_navigation $settingsnav
             $edit = '1';
         }
         $url = new moodle_url('/mod/klassenbuch/view.php', array(
-                                                                'id' => $params['id'], 'chapterid' => $params['chapterid'],
-                                                                'edit' => $edit, 'sesskey' => sesskey()
-                                                           ));
+                    'id' => $params['id'], 'chapterid' => $params['chapterid'],
+                    'edit' => $edit, 'sesskey' => sesskey()
+                ));
         $klassenbuchnode->add($string, $url, navigation_node::TYPE_SETTING);
-        $PAGE->set_button($OUTPUT->single_button($url, $string).' '.$PAGE->button);
+        $PAGE->set_button($OUTPUT->single_button($url, $string) . ' ' . $PAGE->button);
     }
 
     // SYNERGY - add 'edit subscribers' link.
@@ -398,7 +413,7 @@ function klassenbuch_get_custom_file_areas() {
     if (is_null($customareas)) {
         $customfields = $DB->get_records('klassenbuch_globalfields', array(), 'id', 'id, title');
         foreach ($customfields as $customfield) {
-            $customareas['customcontent_'.$customfield->id] = $customfield->title;
+            $customareas['customcontent_' . $customfield->id] = $customfield->title;
         }
     }
 
@@ -451,7 +466,7 @@ function klassenbuch_get_file_info($browser, $areas, $course, $cm, $context, $fi
     $chaptername = $DB->get_field('klassenbuch_chapters', 'title', array('klassenbuchid' => $cm->instance, 'id' => $itemid));
     $chaptername = format_string($chaptername, true, array('context' => $context));
 
-    $urlbase = $CFG->wwwroot.'/pluginfile.php';
+    $urlbase = $CFG->wwwroot . '/pluginfile.php';
     return new file_info_stored($browser, $context, $storedfile, $urlbase, $chaptername, true, true, $canwrite, false);
 }
 
@@ -473,7 +488,7 @@ function klassenbuch_pluginfile($course, $cm, $context, $filearea, $args, $force
         return false;
     }
 
-    require_course_login($course, true, $cm);
+    require_login();
 
     if ($filearea !== 'chapter' && $filearea !== 'attachment') {
         // Check to see if this is a customfield area.
@@ -486,14 +501,22 @@ function klassenbuch_pluginfile($course, $cm, $context, $filearea, $args, $force
         } else {
             return false;
         }
-
     }
 
     if (!has_capability('mod/klassenbuch:read', $context)) {
-        return false;
+        // Check for parent access to the file.
+        $childids = \block_gimychildren\local\gimychildren::get_mychildrenids();
+        if (!$childids) {
+            return false;
+        }
+        $users = get_users_by_capability($context, 'mod/klassenbuch:read', 'u.id');
+        $childwithaccessids = array_intersect($childids, array_keys($users));
+        if (!$childwithaccessids) {
+            return false;
+        }
     }
 
-    $chid = (int)array_shift($args);
+    $chid = (int) array_shift($args);
 
     if (!$klassenbuch = $DB->get_record('klassenbuch', array('id' => $cm->instance))) {
         return false;
@@ -515,7 +538,7 @@ function klassenbuch_pluginfile($course, $cm, $context, $filearea, $args, $force
     }
 
     // Finally send the file.
-    send_stored_file($file, 360, 0, false);
+    send_stored_file($file, 360, 0, $forcedownload);
 }
 
 /**
@@ -541,27 +564,26 @@ function klassenbuch_subscribed_users($course, $book, $groupid = 0, $context = n
         $grouptables = ", {groups_members} gm ";
         $groupselect = "AND gm.groupid = :groupid AND u.id = gm.userid";
         $params['groupid'] = $groupid;
-
     } else {
         $grouptables = '';
         $groupselect = '';
     }
 
+    $namefields = get_all_user_name_fields(true, 'u');
     if (klassenbuch_is_forcesubscribed($book)) {
         if (empty($context)) {
             $cm = get_coursemodule_from_instance('klassenbuch', $book->id, $course->id);
             $context = context_module::instance($cm->id);
         }
         $sort = "u.email ASC";
-        $fields = "u.id, u.username, u.firstname, u.lastname, u.maildisplay, u.mailformat, u.maildigest, u.emailstop, u.imagealt,
+        $fields = "u.id, u.username, {$namefields}, u.maildisplay, u.mailformat, u.maildigest, u.emailstop, u.imagealt,
                     u.email, u.city, u.country, u.lastaccess, u.lastlogin, u.picture, u.timezone, u.theme, u.lang, u.trackforums,
                      u.mnethostid";
         $results = klassenbuch_get_potential_subscribers($context, $groupid, $fields, $sort);
-
     } else {
         $params['bookid'] = $book->id;
         $results = $DB->get_records_sql("
-             SELECT u.id, u.username, u.firstname, u.lastname, u.maildisplay, u.mailformat, u.maildigest, u.emailstop, u.imagealt,
+             SELECT u.id, u.username, {$namefields}, u.maildisplay, u.mailformat, u.maildigest, u.emailstop, u.imagealt,
                     u.email, u.city, u.country, u.lastaccess, u.lastlogin, u.picture, u.timezone, u.theme, u.lang, u.trackforums,
                     u.mnethostid
                FROM {user} u,
@@ -601,12 +623,13 @@ function klassenbuch_is_forcesubscribed($klassenbuch) {
 function klassenbuch_make_mail_text($course, $book, $chapter, $userfrom, $userto, $bare = false) {
     global $CFG;
 
-    require_once($CFG->dirroot.'/mod/klassenbuch/locallib.php');
+    require_once($CFG->dirroot . '/mod/klassenbuch/locallib.php');
 
     if (!$cm = get_coursemodule_from_instance('klassenbuch', $book->id, $course->id)) {
         print_error('incorrectcourseid', 'klassenbuch');
     }
     $modcontext = context_module::instance($cm->id);
+
     $viewfullnames = has_capability('moodle/site:viewfullnames', $modcontext, $userto->id);
 
     $by = new stdClass();
@@ -621,10 +644,10 @@ function klassenbuch_make_mail_text($course, $book, $chapter, $userfrom, $userto
 
     $chaptertext = '';
     if (!$bare) {
-        $chaptertext = "$course->shortname -> $strforums -> ".format_string($book->name, true);
+        $chaptertext = "$course->shortname -> $strforums -> " . format_string($book->name, true);
 
         if ($chapter->title != $book->name) {
-            $chaptertext .= " -> ".format_string($chapter->title, true);
+            $chaptertext .= " -> " . format_string($chapter->title, true);
         }
     }
 
@@ -633,7 +656,7 @@ function klassenbuch_make_mail_text($course, $book, $chapter, $userfrom, $userto
     if ($bare) {
         $chaptertext .= " ($CFG->wwwroot/mod/klassenbuch/discuss.php?d=$book->id#p$chapter->id)";
     }
-    $chaptertext .= "\n".$strbynameondate."\n";
+    $chaptertext .= "\n" . $strbynameondate . "\n";
     $chaptertext .= "---------------------------------------------------------------------\n";
     $content = $chapter->content;
     if (empty($content)) {
@@ -641,8 +664,8 @@ function klassenbuch_make_mail_text($course, $book, $chapter, $userfrom, $userto
         $customfields = klassenbuch_get_chapter_customfields($chapter->id);
         foreach ($customfields as $customfield) {
             if (!empty($customfield->content)) {
-                $content .= $customfield->title."\n";
-                $content .= format_text($customfield->content, $customfield->contentformat)."\n";
+                $content .= $customfield->title . "\n";
+                $content .= format_text($customfield->content, $customfield->contentformat) . "\n";
             }
         }
     }
@@ -650,7 +673,7 @@ function klassenbuch_make_mail_text($course, $book, $chapter, $userfrom, $userto
     $chaptertext .= "\n";
     $attachments = klassenbuch_output_attachments($chapter->id, $modcontext, true);
     if ($attachments) {
-        $chaptertext .= "\n".get_string('attachment', 'klassenbuch')."\n";
+        $chaptertext .= "\n" . get_string('attachment', 'klassenbuch') . "\n";
         $chaptertext .= $attachments;
     }
     if (!$bare && $canunsubscribe) {
@@ -660,7 +683,6 @@ function klassenbuch_make_mail_text($course, $book, $chapter, $userfrom, $userto
     }
 
     return $chaptertext;
-
 }
 
 function klassenbuch_make_mail_html($course, $klassenbuch, $post, $userfrom, $userto) {
@@ -681,14 +703,14 @@ function klassenbuch_make_mail_html($course, $klassenbuch, $post, $userfrom, $us
     $posthtml .= '</head>';
     $posthtml .= "\n<body id=\"email\">\n\n";
 
-    $posthtml .= '<div class="navbar">'."\n".
-        '<a target="_blank" href="'.$CFG->wwwroot.'/course/view.php?id='.$course->id.'">'.$course->shortname.'</a> &raquo; '."\n".
-        '<a target="_blank" href="'.$CFG->wwwroot.'/mod/klassenbuch/index.php?id='.$course->id.'">'.$strklassenbuchs.
-        '</a> &raquo; '."\n".
-        '<a target="_blank" href="'.$CFG->wwwroot.'/mod/klassenbuch/view.php?id='.$cm->id.'">'.
-        format_string($klassenbuch->name, true).'</a> '."\n";
+    $posthtml .= '<div class="navbar">' . "\n" .
+            '<a target="_blank" href="' . $CFG->wwwroot . '/course/view.php?id=' . $course->id . '">' . $course->shortname . '</a> &raquo; ' . "\n" .
+            '<a target="_blank" href="' . $CFG->wwwroot . '/mod/klassenbuch/index.php?id=' . $course->id . '">' . $strklassenbuchs .
+            '</a> &raquo; ' . "\n" .
+            '<a target="_blank" href="' . $CFG->wwwroot . '/mod/klassenbuch/view.php?id=' . $cm->id . '">' .
+            format_string($klassenbuch->name, true) . '</a> ' . "\n";
     $posthtml .= '</div>';
-    $posthtml .= klassenbuch_make_mail_post($course, $klassenbuch, $post, $userfrom, $userto)."\n";
+    $posthtml .= klassenbuch_make_mail_post($course, $klassenbuch, $post, $userfrom, $userto) . "\n";
 
     $context = context_module::instance($cm->id);
     $attachments = klassenbuch_output_attachments($post->id, $context);
@@ -699,22 +721,21 @@ function klassenbuch_make_mail_html($course, $klassenbuch, $post, $userfrom, $us
 
     if ($canunsubscribe) {
         $posthtml .= '<hr /><div class="mdl-align unsubscribelink">
-                        <a href="'.$CFG->wwwroot.'/mod/klassenbuch/subscribe.php?id='.$klassenbuch->id.'">'.
-            get_string('unsubscribe', 'klassenbuch').'</a>
-                        </div>'."\n";
+                        <a href="' . $CFG->wwwroot . '/mod/klassenbuch/subscribe.php?id=' . $klassenbuch->id . '">' .
+                get_string('unsubscribe', 'klassenbuch') . '</a>
+                        </div>' . "\n";
     }
 
     $posthtml .= '</body>';
 
     return $posthtml;
-
 }
 
 function klassenbuch_make_mail_post($course, $klassenbuch, $post, $userfrom, $userto, $footer = "") {
 
     global $CFG, $OUTPUT;
 
-    require_once($CFG->dirroot.'/mod/klassenbuch/locallib.php');
+    require_once($CFG->dirroot . '/mod/klassenbuch/locallib.php');
 
     if (!$cm = get_coursemodule_from_instance('klassenbuch', $klassenbuch->id, $course->id)) {
         print_error('Course Module ID was incorrect');
@@ -731,10 +752,10 @@ function klassenbuch_make_mail_post($course, $klassenbuch, $post, $userfrom, $us
         $customfields = klassenbuch_get_chapter_customfields($post->id);
         foreach ($customfields as $customfield) {
             if (!empty($customfield->content)) {
-                $content .= $OUTPUT->heading($customfield->title, 3)."\n";
-                $chcontent = file_rewrite_pluginfile_urls($customfield->content, 'pluginfile.php', $modcontext->id,
-                                                          'mod_klassenbuch', 'customcontent_'.$customfield->fieldid, $post->id);
-                $content .= format_text($chcontent, $customfield->contentformat)."\n";
+                $content .= $OUTPUT->heading($customfield->title, 3) . "\n";
+                $chcontent = file_rewrite_pluginfile_urls($customfield->content, 'pluginfile.php',
+                    $modcontext->id, 'mod_klassenbuch', 'customcontent_' . $customfield->fieldid, $post->id);
+                $content .= format_text($chcontent, $customfield->contentformat) . "\n";
             }
         }
     }
@@ -748,13 +769,13 @@ function klassenbuch_make_mail_post($course, $klassenbuch, $post, $userfrom, $us
     $output .= '</td>';
 
     $output .= '<td class="topic starter">';
-    $output .= '<div class="subject">'.format_string($post->title).'</div>';
+    $output .= '<div class="subject">' . format_string($post->title) . '</div>';
 
     $fullname = fullname($userfrom, $viewfullnames);
     $by = new stdClass();
-    $by->name = '<a href="'.$CFG->wwwroot.'/user/view.php?id='.$userfrom->id.'&amp;course='.$course->id.'">'.$fullname.'</a>';
+    $by->name = '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $userfrom->id . '&amp;course=' . $course->id . '">' . $fullname . '</a>';
     $by->date = userdate($post->timemodified, '', $userto->timezone);
-    $output .= '<div class="author">'.get_string('bynameondate', 'klassenbuch', $by).'</div>';
+    $output .= '<div class="author">' . get_string('bynameondate', 'klassenbuch', $by) . '</div>';
 
     $output .= '</td></tr>';
 
@@ -788,15 +809,15 @@ function klassenbuch_make_mail_post($course, $klassenbuch, $post, $userfrom, $us
 
     // Context link to post if required.
     if ($footer) {
-        $output .= '<div class="footer">'.$footer.'</div>';
+        $output .= '<div class="footer">' . $footer . '</div>';
     }
-    $output .= '</td></tr></table>'."\n\n";
+    $output .= '</td></tr></table>' . "\n\n";
 
     return $output;
 }
 
-function klassenbuch_get_subscribe_link($klassenbuch, $context, $messages = array(), $cantaccessagroup = false, $fakelink = true,
-                                        $backtoindex = false, $subscribedklassenbuchs = null) {
+function klassenbuch_get_subscribe_link($klassenbuch, $context, $messages = array(), $cantaccessagroup = false,
+                                        $fakelink = true, $backtoindex = false, $subscribedklassenbuchs = null) {
     global $CFG, $USER;
     $defaultmessages = array(
         'subscribed' => get_string('unsubscribe', 'klassenbuch'),
@@ -810,7 +831,7 @@ function klassenbuch_get_subscribe_link($klassenbuch, $context, $messages = arra
     if (klassenbuch_is_forcesubscribed($klassenbuch)) {
         return $messages['forcesubscribed'];
     } else if ($klassenbuch->forcesubscribe == KLASSENBUCH_DISALLOWSUBSCRIBE &&
-        !has_capability('mod/klassenbuch:managesubscriptions', $context)
+            !has_capability('mod/klassenbuch:managesubscriptions', $context)
     ) {
         return $messages['cantsubscribe'];
     } else if ($cantaccessagroup) {
@@ -823,10 +844,8 @@ function klassenbuch_get_subscribe_link($klassenbuch, $context, $messages = arra
         }
         if ($subscribed) {
             $linktext = $messages['subscribed'];
-            $linktitle = get_string('subscribe', 'klassenbuch');
         } else {
             $linktext = $messages['unsubscribed'];
-            $linktitle = get_string('unsubscribe', 'klassenbuch');
         }
 
         $options = array();
@@ -840,10 +859,10 @@ function klassenbuch_get_subscribe_link($klassenbuch, $context, $messages = arra
 
         if ($fakelink) {
             $link .= '<script type="text/javascript">';
-            $link .= '//<![CDATA['."\n";
-            $link .= 'document.getElementById("subscriptionlink").innerHTML = "<a title=\"'.$linktitle.'\" href=\"'.
-                $CFG->wwwroot.'/mod/klassenbuch/subscribe.php?id='.$klassenbuch->id.$backtoindexlink.'\">'.
-                $linktext.'<\/a>";';
+            $link .= '//<![CDATA[' . "\n";
+            $link .= 'document.getElementById("subscriptionlink").innerHTML = "<a href=\"' .
+                    $CFG->wwwroot . '/mod/klassenbuch/subscribe.php?id=' . $klassenbuch->id . $backtoindexlink . '\">' .
+                    $linktext . '<\/a>";';
             $link .= '//]]>';
             $link .= '</script>';
             // Use <noscript> to print button in case javascript is not enabled.
@@ -871,7 +890,13 @@ function klassenbuch_is_subscribed($userid, $klassenbuchid) {
 function klassenbuch_unsubscribe($userid, $bookid) {
     global $DB;
 
-    return $DB->delete_records("klassenbuch_subscriptions", array("userid" => $userid, "klassenbuch" => $bookid));
+    $retid = $DB->get_field("klassenbuch_subscriptions", 'id', array("userid" => $userid, "klassenbuch" => $bookid));
+    if (!$retid) {
+        return $retid;
+    }
+
+    $DB->delete_records("klassenbuch_subscriptions", array("userid" => $userid, "klassenbuch" => $bookid));
+    return $retid;
 }
 
 function klassenbuch_subscribe($userid, $klassenbuchid) {
@@ -902,10 +927,10 @@ function klassenbuch_update_subscriptions_button($courseid, $klassenbuchid) {
         $edit = "on";
     }
 
-    return "<form $CFG->frametarget method=\"get\" action=\"$CFG->wwwroot/mod/klassenbuch/subscribers.php\">".
-    "<input type=\"hidden\" name=\"id\" value=\"$klassenbuchid\" />".
-    "<input type=\"hidden\" name=\"edit\" value=\"$edit\" />".
-    "<input type=\"submit\" value=\"$string\" /></form>";
+    return "<form $CFG->frametarget method=\"get\" action=\"$CFG->wwwroot/mod/klassenbuch/subscribers.php\">" .
+            "<input type=\"hidden\" name=\"id\" value=\"$klassenbuchid\" />" .
+            "<input type=\"hidden\" name=\"edit\" value=\"$edit\" />" .
+            "<input type=\"submit\" value=\"$string\" /></form>";
 }
 
 function klassenbuch_forcesubscribe($klassenbuchid, $value = 1) {
@@ -914,8 +939,13 @@ function klassenbuch_forcesubscribe($klassenbuchid, $value = 1) {
 }
 
 function klassenbuch_get_potential_subscribers($klassenbuchcontext, $groupid, $fields, $sort) {
-    return get_users_by_capability($klassenbuchcontext, 'mod/klassenbuch:initialsubscriptions', $fields, $sort, '', '', $groupid,
-                                   '', false, true);
+    global $CFG;
+    $users = get_users_by_capability($klassenbuchcontext, 'mod/klassenbuch:initialsubscriptions', $fields, $sort, '', '', $groupid, '', false, true);
+    if (file_exists($CFG->dirroot . '/local/gitemplate')) {
+        \local_gitemplate\local\anonymous::remove_anonymous_user($users);
+    }
+
+    return $users;
 }
 
 function klassenbuch_role_unassign($userid, $context) {
@@ -979,8 +1009,7 @@ function klassenbuch_remove_user_subscriptions($userid, $context) {
                                                       {klassenbuch_subscriptions} ks
                                                 WHERE ks.userid = $userid AND k.course = ?
                                                       AND ks.book = k.id AND cm.instance = k.id
-                                                      AND cm.module = m.id AND m.name = 'klassenbuch'",
-                                                         array($context->instanceid))
+                                                      AND cm.module = m.id AND m.name = 'klassenbuch'", array($context->instanceid))
                 ) {
 
                     foreach ($klassenbuchs as $klassenbuch) {
@@ -1006,4 +1035,28 @@ function klassenbuch_remove_user_subscriptions($userid, $context) {
     }
 
     return true;
+}
+
+/**
+ * Return content delivered from subplugins.
+ * @return String html content from subplugins;
+ */
+function klassenbuch_get_subcontent($chapterid, $context) {
+    $output = '';
+
+    $plugins = get_plugin_list('klassenbuchtool');
+    foreach ($plugins as $plugin => $dir) {
+        if ($plugin == 'lernschritte') {
+            continue;
+        }
+        if (file_exists("$dir/lib.php")) {
+            require_once("$dir/lib.php");
+        }
+        $function = 'klassenbuchtool_' . $plugin . '_get_subcontent';
+        if (function_exists($function)) {
+            $output .= $function($chapterid, $context);
+        }
+    }
+
+    return $output;
 }

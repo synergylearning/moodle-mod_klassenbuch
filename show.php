@@ -48,6 +48,7 @@ $chapter->hidden = $chapter->hidden ? 0 : 1;
 
 // Update record.
 $DB->update_record('klassenbuch_chapters', $chapter);
+\mod_klassenbuch\event\chapter_updated::create_from_chapter($klassenbuch, $context, $chapter)->trigger();
 
 // Change visibility of subchapters too.
 if (!$chapter->subchapter) {
@@ -60,14 +61,12 @@ if (!$chapter->subchapter) {
         } else if ($found and $ch->subchapter) {
             $ch->hidden = $chapter->hidden;
             $DB->update_record('klassenbuch_chapters', $ch);
+            \mod_klassenbuch\event\chapter_updated::create_from_chapter($klassenbuch, $context, $ch)->trigger();
         } else if ($found) {
             break;
         }
     }
 }
-
-add_to_log($course->id, 'course', 'update mod', '../mod/klassenbuch/view.php?id='.$cm->id, 'klassenbuch '.$klassenbuch->id);
-add_to_log($course->id, 'klassenbuch', 'update', 'view.php?id='.$cm->id, $klassenbuch->id, $cm->id);
 
 klassenbuch_preload_chapters($klassenbuch); // Fix structure.
 $DB->set_field('klassenbuch', 'revision', $klassenbuch->revision + 1, array('id' => $klassenbuch->id));

@@ -56,6 +56,11 @@ if ($chapterid) {
 
 $PAGE->set_url('/mod/klassenbuch/print.php', array('id' => $id, 'chapterid' => $chapterid));
 
+// Use "embedded" instead of "print" because Bootstrapbase shows top
+// header bar and navbar even on print style - which is inconsistent
+// with extant behaviour.
+$PAGE->set_pagelayout("embedded");
+
 unset($id);
 unset($chapterid);
 
@@ -79,9 +84,7 @@ if ($chapter) {
     if ($chapter->hidden) {
         require_capability('mod/klassenbuch:viewhiddenchapters', $context);
     }
-
-    add_to_log($course->id, 'klassenbuch', 'print', 'tool/print/index.php?id='.$cm->id.'&chapterid='.$chapter->id,
-               $klassenbuch->id, $cm->id);
+    \klassenbuchtool_print\event\chapter_printed::create_from_chapter($klassenbuch, $context, $chapter)->trigger();
 
     // Page header.
     ?>
@@ -135,7 +138,7 @@ if ($chapter) {
     echo '</body> </html>';
 
 } else {
-    add_to_log($course->id, 'klassenbuch', 'print', 'tool/print/index.php?id='.$cm->id, $klassenbuch->id, $cm->id);
+    \klassenbuchtool_print\event\klassenbuch_printed::create_from_klassenbuch($klassenbuch, $context)->trigger();
     $allchapters = $DB->get_records('klassenbuch_chapters', array('klassenbuchid' => $klassenbuch->id), 'pagenum');
 
     // Page header.
@@ -154,10 +157,9 @@ if ($chapter) {
 
 <p class="klassenbuch_title"><?php echo format_string($klassenbuch->name, true, array('context' => $context)) ?></p>
 
-<p class="klassenbuch_summary"><?php echo format_text($klassenbuch->intro, $klassenbuch->introformat, array(
-                                                                                                           'noclean' => true,
-                                                                                                           'context' => $context
-                                                                                                      )) ?></p>
+<p class="klassenbuch_summary"><?php
+$intro = file_rewrite_pluginfile_urls($klassenbuch->intro, 'pluginfile.php', $context->id, 'mod_klassenbuch', 'intro', null);
+echo format_text($intro, $klassenbuch->introformat, array('noclean' => true, 'context' => $context)) ?></p>
 
 <div class="klassenbuch_info">
     <table>
