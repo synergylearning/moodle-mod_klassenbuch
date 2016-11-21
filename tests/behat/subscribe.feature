@@ -30,7 +30,7 @@ Feature: Users can subscribe to a klassenbuch and receive updates when sent by a
       | Field 1       | Field 1 content |
       | Field 2       | Field 2 content |
     And I press "Save changes"
-    And I follow "Turn editing on"
+    And I navigate to "Turn editing on" node in "Klassenbuch administration"
 
   Scenario: If everyone is subscribed, the chapter is sent to everyone
     When I follow "Everyone will be subscribed to this book"
@@ -63,6 +63,6 @@ Feature: Users can subscribe to a klassenbuch and receive updates when sent by a
     Then I should see "Student 1"
 
     When I follow "Klassenbuch 1"
-    And I follow "Turn editing on"
+    And I navigate to "Turn editing on" node in "Klassenbuch administration"
     And I click on "Send" "link" in the "Chapter 1" "list_item"
     Then I should see "1 participants sent chapter 'Chapter 1'"

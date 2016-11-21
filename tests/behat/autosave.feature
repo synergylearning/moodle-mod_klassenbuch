@@ -28,7 +28,7 @@ Feature: Whilst editing klassenbuch chapters the autosave feature correctly save
       | Field 1       | Field 1 content |
       | Field 2       | Field 2 content |
     And I press "Save changes"
-    And I follow "Turn editing on"
+    And I navigate to "Turn editing on" node in "Klassenbuch administration"
 
   Scenario: If a teacher navigates away from a form that has been autosaved, then their entry is retrieved as expected
     When I click on "Add new chapter" "link" in the "Chapter 1" "list_item"

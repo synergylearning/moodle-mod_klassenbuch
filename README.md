@@ -15,6 +15,7 @@ GNU General Public License for more details: http://www.gnu.org/copyleft/gpl.htm
 
 Changes:
 
+* 2016-11-21: Minor M3.2 compatibility fix (only behat affected)
 * 2016-10-17: Several Moodle 2.7+ compatibility fixes, 'class plan' editing option
 
 Differences from the book module:
