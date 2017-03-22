@@ -127,7 +127,7 @@ function klassenbuchtool_exportimscp_prepare_files($klassenbuch, $context) {
     // Moodle and Klassenbuch version.
     $moodlerelease = $CFG->release;
     $moodleversion = $CFG->version;
-    $klassenbuchversion = $DB->get_field('modules', 'version', array('name' => 'klassenbuch'));
+    $klassenbuchversion = get_config('mod_klassenbuch', 'version');
     $klassenbuchname = format_string($klassenbuch->name, true, array('context' => $context));
 
     // Load manifest header.

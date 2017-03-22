@@ -190,7 +190,11 @@ function toolklassenbuch_importhtml_fix_encoding($html) {
         $head = $matches[1];
         if (preg_match('/charset=([^"]+)/is', $head, $matches)) {
             $enc = $matches[1];
-            return textlib::convert($html, $enc, 'utf-8');
+            if (class_exists('core_text')) {
+                return core_text::convert($html, $enc, 'utf-8');
+            } else {
+                return textlib::convert($html, $enc, 'utf-8');
+            }
         }
     }
     return iconv('UTF-8', 'UTF-8//IGNORE', $html);
@@ -253,9 +257,15 @@ function toolklassenbuch_importhtml_get_chapter_files($package, $type) {
         }
     }
     // TODO: natural dir sorting would be nice here...
-    textlib::asort($tophtmlfiles);
-    textlib::asort($subhtmlfiles);
-    textlib::asort($topdirs);
+    if (class_exists('core_collator')) {
+        core_collator::asort($tophtmlfiles);
+        core_collator::asort($subhtmlfiles);
+        core_collator::asort($topdirs);
+    } else {
+        textlib::asort($tophtmlfiles);
+        textlib::asort($subhtmlfiles);
+        textlib::asort($topdirs);
+    }
 
     $chapterfiles = array();
 
@@ -267,7 +277,11 @@ function toolklassenbuch_importhtml_get_chapter_files($package, $type) {
             if (empty($htmlfiles)) {
                 continue;
             }
-            textlib::asort($htmlfiles);
+            if (class_exists('core_collator')) {
+                core_collator::asort($htmlfiles);
+            } else {
+                textlib::asort($htmlfiles);
+            }
             if (isset($htmlfiles[$dir.'/index.html'])) {
                 $htmlfile = $htmlfiles[$dir.'/index.html'];
             } else if (isset($htmlfiles[$dir.'/index.htm'])) {

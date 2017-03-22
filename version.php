@@ -24,10 +24,10 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-$plugin->version   = 2016112100; // The current module version (Date: YYYYMMDDXX).
+$plugin->version   = 2017032200; // The current module version (Date: YYYYMMDDXX).
 $plugin->requires  = 2014051200	; // Moodle 2.7+.
 $plugin->cron      = 0;          // Period for cron to check this module (secs).
 $plugin->component = 'mod_klassenbuch'; // Full name of the plugin (used for diagnostics).
 
 $plugin->maturity  = MATURITY_STABLE;
-$plugin->release   = "2.7+ (2016112100)"; // User-friendly version number.
+$plugin->release   = "2.7+ (2017032200)"; // User-friendly version number.
